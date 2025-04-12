@@ -181,7 +181,7 @@ function doGet(e) {
   if (e.parameter.view === "customer") {
     return HtmlService.createHtmlOutputFromFile('Customer');
   } else if (e.parameter.view === "transaction") {
-    return HtmlService.createHtmlOutputFromFile('TransactionForm');
+    return HtmlService.createHtmlOutputFromFile('Transaction');
   } else {
     return HtmlService.createHtmlOutput("Invalid view parameter.");
   }
