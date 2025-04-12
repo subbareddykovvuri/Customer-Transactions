@@ -43,6 +43,46 @@ function getCustomers() {
   return customers; // Sends data back to the frontend
 }
 
+function editCustomer(id, newName) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Customer Summary');
+  const data = sheet.getDataRange().getValues();
+
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][0]) === String(id)) {
+      sheet.getRange(i + 1, 2).setValue(newName); // Assuming name is column 2
+      return true;
+    }
+  }
+  return false;
+}
+
+
+function deleteCustomerAndTransactions(customerId) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  const transactionSheet = ss.getSheetByName('Transactions');
+  const transactionData = transactionSheet.getDataRange().getValues();
+
+  // Delete transactions matching customerId
+  for (let i = transactionData.length - 1; i > 0; i--) {
+    if (String(transactionData[i][1]) === String(customerId)) {
+      transactionSheet.deleteRow(i + 1);
+    }
+  }
+
+  // Delete customer from 'Customers'
+  const customerSheet = ss.getSheetByName('Customer Summary');
+  const customerData = customerSheet.getDataRange().getValues();
+  for (let i = customerData.length - 1; i > 0; i--) {
+    if (String(customerData[i][0]) === String(customerId)) {
+      customerSheet.deleteRow(i + 1);
+      return true;
+    }
+  }
+
+  return false;
+}
+
 
 
 
