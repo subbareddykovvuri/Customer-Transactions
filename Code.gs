@@ -15,17 +15,13 @@ function showCustomerForm() {
 }
 
 function addCustomer(name) {
-  if (!name) {
-    SpreadsheetApp.getUi().alert('Customer name cannot be empty!');
-    return;
-  }
-
+  
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Customer Summary');
   var lastRow = sheet.getLastRow();
   var customerId = (lastRow < 2) ? 1 : sheet.getRange(lastRow, 1).getValue() + 1;
   sheet.appendRow([customerId, name, 0, 0]);
-  SpreadsheetApp.getUi().alert('Customer added successfully!');
   updateCustomerTransactions();
+  return true;
 }
 
 
