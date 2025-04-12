@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script>
+    function loadCustomers() {
+      google.script.run.withSuccessHandler(function(customers) {
+        var tableBody = document.getElementById("customerTableBody");
+        tableBody.innerHTML = "";
+        customers.forEach(customer => {
+          var row = `<tr onclick="showTransactions('${customer.id}', '${customer.name}')">
+                      <td>${customer.id}</td>
+                      <td>${customer.name}</td>
+                      <td>${customer.received}</td>
+                      <td>${customer.sent}</td>
+                    </tr>`;
+          tableBody.innerHTML += row;
+        });
+      }).getCustomers();
+    }
+    
+    function showTransactions(customerId, customerName) {
+      document.getElementById("transactionHeader").innerText = `Transactions for ${customerName}`;
+      google.script.run.withSuccessHandler(function(transactions) {
+        var transactionTable = document.getElementById("transactionTableBody");
+        transactionTable.innerHTML = "";
+        console.log(transactions);
+        if(transactions == null){
+          var row = `<tr><td colspan='6'>No transactions found.</td></tr>`
+          transactionTable.innerHTML += row;
+        }else{
+          transactions.forEach(tr => {
+            var row = `<tr>
+                        <td>${tr.id}</td>
+                        <td>${tr.customerId}</td>
+                        <td>${tr.name}</td>
+                        <td>${tr.received}</td>
+                        <td>${tr.sent}</td>
+                        <td>${tr.date}</td>
+                      </tr>`;
+            transactionTable.innerHTML += row;
+          });
+        }
+      })
+      .withFailureHandler(function(error) {
+      console.error("Error calling getTransactions:", error);
+      tableBody.innerHTML = "<tr><td colspan='6' style='color: red;'>Error loading transactions.</td></tr>";
+      })
+      .getTransactions(customerId);
+    }
+    
+    function showAddCustomerForm() {
+      document.getElementById("customerForm").style.display = "block";
+    }
+    
+    function addCustomer() {
+      var name = document.getElementById("customerName").value;
+      if (!name) {
+        alert("Customer name cannot be empty!");
+        return;
+      }
+      document.getElementById("addCustomerButton").disabled = true;
+      google.script.run.withSuccessHandler(function() {
+        alert("Customer added successfully!");
+        document.getElementById("customerForm").style.display = "none";
+        document.getElementById("addCustomerButton").disabled = false;
+        loadCustomers();
+      }).addCustomer(name);
+    }
+  </script>
+</head>
+<body onload="loadCustomers()">
+  <h3>Customer List</h3>
+  <button onclick="showAddCustomerForm()">Add Customer</button>
+  <br><br>
+  <table border="1" style="width: 100%;">
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Total Received</th>
+      <th>Total Sent</th>
+    </tr>
+    <tbody id="customerTableBody"></tbody>
+  </table>
+
+  <div id="customerForm" style="display:none;">
+    <h3>Add Customer</h3>
+    <input type="text" id="customerName" placeholder="Customer Name">
+    <button id="addCustomerButton" onclick="addCustomer()">Add</button>
+  </div>
+
+  <h3 id="transactionHeader">Transactions</h3>
+  <table border="1" style="width: 100%;">
+    <tr>
+      <th>ID</th>
+      <th>Customer ID</th>
+      <th>Name</th>
+      <th>Amount Received</th>
+      <th>Amount Sent</th>
+      <th>Date</th>
+    </tr>
+    <tbody id="transactionTableBody"></tbody>
+  </table>
+</body>
+</html>
