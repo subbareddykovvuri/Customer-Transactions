@@ -1,69 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <script>
-    function loadCustomers() {
-      google.script.run.withSuccessHandler(function(customers) {
-        var select = document.getElementById("customerSelect");
-        select.innerHTML = "";
-        customers.forEach(customer => {
-          var option = document.createElement("option");
-          option.value = customer.id;
-          option.textContent = customer.id + " - " + customer.name;
-          select.appendChild(option);
-        });
-      }).getCustomers();
-    }
-
-    function addTransaction() {
-      var button = document.getElementById("addTransactionButton");
-      button.disabled = true; // Disable button while processing
-
-      var select = document.getElementById("customerSelect");
-      var selectedText = select.options[select.selectedIndex].text;
-      var name = selectedText.split(" - ")[1];
-      var selectedValue = select.value;
-      var amount = document.getElementById("amount").value;
-      var type = document.querySelector('input[name="type"]:checked').value;
-
-      if (!amount || isNaN(amount)) {
-        alert("Please enter a valid amount!");
-        button.disabled = false; // Re-enable button if validation fails
-        return;
-      }
-
-      google.script.run.withSuccessHandler(function(message) {
-        alert('Transaction added successfully');
-        button.disabled = false; // Re-enable button
-        google.script.host.close();
-      }).withFailureHandler(function(error) {
-        alert("Error: " + error.message);
-        button.disabled = false; // Re-enable button if error occurs
-      }).addTransaction(selectedValue, name, parseFloat(amount), type);
-    }
-
-    window.onload = loadCustomers;
-  </script>
-</head>
-<body>
-  <h3>Add Transaction</h3>
-  <label>Customer:</label>
-  <select id="customerSelect"></select><br><br>
-  
-  <label>Amount:</label>
-  <input type="number" id="amount"><br><br>
-  
-  <label>Type:</label>
-  <input type="radio" name="type" value="Received" checked> Received
-  <input type="radio" name="type" value="Sent"> Sent<br><br>
-  
-  <button id="addTransactionButton" onclick="addTransaction()">Add</button>
-</body>
-</html>
-
-<!DOCTYPE html>
-<html>
-<head>
+  <title>Transactions</title>
+  <!-- Bootstrap 5 CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <script>
     function pad(n) {
       return n < 10 ? '0' + n : n;
@@ -72,7 +12,7 @@
     function formatDateTimeLocal(date) {
       return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
     }
-    
+
     function setQuickDateRange() {
       const filter = document.getElementById("quickFilter").value;
       const fromDateInput = document.getElementById("fromDate");
@@ -82,8 +22,8 @@
       let fromDate = new Date();
 
       switch (filter) {
-        case "All":
-          fromDate = new Date(0)
+        case "all":
+          fromDate = new Date(0);
           break;
         case "1year":
           fromDate.setFullYear(today.getFullYear() - 1);
@@ -95,26 +35,21 @@
           fromDate.setDate(today.getDate() - 7);
           break;
         case "1day":
-          fromDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0 , 0, 0); // Start of today
+          fromDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
           break;
-        default:
-          fromDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0 , 0, 0);
       }
-      console.log(fromDate)
+
       fromDateInput.value = formatDateTimeLocal(fromDate);
       toDateInput.value = formatDateTimeLocal(today);
       loadTransactions();
     }
 
-    
-
     function loadTransactions() {
       const tbody = document.getElementById("transactionsBody");
-      tbody.innerHTML = `<tr><td colspan="6">Loading transactions...</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center">Loading transactions...</td></tr>`;
 
       const fromDate = document.getElementById("fromDate").value;
       const toDate = document.getElementById("toDate").value;
-      console.log(fromDate,toDate)
 
       google.script.run.withSuccessHandler(renderTransactionTable)
         .getFilteredTransactions(fromDate, toDate);
@@ -124,8 +59,8 @@
       const tbody = document.getElementById("transactionsBody");
       tbody.innerHTML = "";
 
-      if (!transactions || transactions.length==0) {
-        tbody.innerHTML = `<tr><td colspan="6">No transactions found.</td></tr>`;
+      if (!transactions || transactions.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center">No transactions found.</td></tr>`;
         return;
       }
 
@@ -141,42 +76,121 @@
         tbody.innerHTML += row;
       });
     }
+
+    function loadCustomers() {
+      google.script.run.withSuccessHandler(function (customers) {
+        const select = document.getElementById("customerSelect");
+        select.innerHTML = "";
+        customers.forEach(customer => {
+          const option = document.createElement("option");
+          option.value = customer.id;
+          option.textContent = `${customer.id} - ${customer.name}`;
+          select.appendChild(option);
+        });
+      }).getCustomers();
+    }
+
+    function addTransaction() {
+      const button = document.getElementById("addTransactionButton");
+      button.disabled = true;
+
+      const select = document.getElementById("customerSelect");
+      const selectedText = select.options[select.selectedIndex].text;
+      const name = selectedText.split(" - ")[1];
+      const selectedValue = select.value;
+      const amount = document.getElementById("amount").value;
+      const type = document.querySelector('input[name="type"]:checked').value;
+
+      if (!amount || isNaN(amount)) {
+        alert("Please enter a valid amount!");
+        button.disabled = false;
+        return;
+      }
+
+      google.script.run.withSuccessHandler(function () {
+        alert('Transaction added successfully');
+        button.disabled = false;
+        google.script.host.close();
+      }).withFailureHandler(function (error) {
+        alert("Error: " + error.message);
+        button.disabled = false;
+      }).addTransaction(selectedValue, name, parseFloat(amount), type);
+    }
+
     window.onload = function () {
+      loadCustomers();
       document.getElementById("quickFilter").addEventListener("change", setQuickDateRange);
-      setQuickDateRange(); // Set default on load
-      
+      setQuickDateRange();
     };
   </script>
-
 </head>
-<body>
-  <h3>Transactions</h3>
-  <label>Quick Filter:</label>
-  <select id="quickFilter" onchange="setQuickDateRange()">
-    <option value="1day">Today</option>
-    <option value="1week">Last 1 Week</option>
-    <option value="1month">Last 1 Month</option>
-    <option value="1year">Last 1 Year</option>
-    <option value="all">All</option>
-  </select><br><br>
 
-  <label>From Date:</label>
-  <input type="datetime-local" id="fromDate" onchange="loadTransactions()">
-  <label>To Date:</label>
-  <input type="datetime-local" id="toDate" onchange="loadTransactions()">
+<body class="container py-4">
+  <h2 class="mb-4">Add Transaction</h2>
+  <div class="row g-3 mb-5">
+    <div class="col-md-4">
+      <label class="form-label">Customer</label>
+      <select id="customerSelect" class="form-select"></select>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Amount</label>
+      <input type="number" id="amount" class="form-control">
+    </div>
+    <div class="col-md-4">
+      <label class="form-label d-block">Type</label>
+      <div class="form-check form-check-inline">
+        <input type="radio" name="type" value="Received" checked class="form-check-input" id="received">
+        <label for="received" class="form-check-label">Received</label>
+      </div>
+      <div class="form-check form-check-inline">
+        <input type="radio" name="type" value="Sent" class="form-check-input" id="sent">
+        <label for="sent" class="form-check-label">Sent</label>
+      </div>
+    </div>
+  </div>
+  <button id="addTransactionButton" class="btn btn-primary mb-5" onclick="addTransaction()">Add Transaction</button>
 
+  <hr>
 
-  <h3>All Transactions</h3>
-  <table border="1" style=" width: 100%; text-align: left;">
-    <thead>
-      <tr>
-        <th>ID</th><th>Customer ID</th><th>Name</th><th>Amount</th><th>Type</th><th>Date</th>
-      </tr>
-    </thead>
-    <tbody id="transactionsBody">
-      <tr><td colspan="6">Loading transactions...</td></tr>
-    </tbody>
-  </table>
+  <h2 class="mb-4">Transactions</h2>
+
+  <div class="row g-3 align-items-end mb-4">
+    <div class="col-md-3">
+      <label class="form-label">Quick Filter</label>
+      <select id="quickFilter" class="form-select">
+        <option value="1day">Today</option>
+        <option value="1week">Last 1 Week</option>
+        <option value="1month">Last 1 Month</option>
+        <option value="1year">Last 1 Year</option>
+        <option value="all">All</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">From Date</label>
+      <input type="datetime-local" id="fromDate" class="form-control" onchange="loadTransactions()">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">To Date</label>
+      <input type="datetime-local" id="toDate" class="form-control" onchange="loadTransactions()">
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>ID</th>
+          <th>Customer ID</th>
+          <th>Name</th>
+          <th>Received</th>
+          <th>Sent</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody id="transactionsBody">
+        <tr><td colspan="6" class="text-center">Loading transactions...</td></tr>
+      </tbody>
+    </table>
+  </div>
 </body>
 </html>
-
